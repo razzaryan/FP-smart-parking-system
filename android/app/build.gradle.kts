@@ -36,6 +36,12 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+    // TAMBAHKAN 5 BARIS INI DI DALAM BLOK android { ... }
+    packaging {
+        jniLibs {
+            keepDebugSymbols.add("**/*.so")
+        }
+    }
 }
 
 kotlin {

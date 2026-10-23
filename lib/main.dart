@@ -4,7 +4,6 @@ void main() {
   runApp(const ParkingApp());
 }
 
-// 1. Root Widget Aplikasi
 class ParkingApp extends StatelessWidget {
   const ParkingApp({super.key});
 
@@ -23,7 +22,6 @@ class ParkingApp extends StatelessWidget {
   }
 }
 
-// 2. Halaman Utama dengan Navigasi (User View & Admin View)
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
 
@@ -32,28 +30,20 @@ class MainNavigationScreen extends StatefulWidget {
 }
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
-  // Index tab aktif: 0 = Dashboard Pengguna, 1 = Panel Admin
-  int _selectedIndex = 0;
+  int _activeScreen = 0;
 
-  // Status 4 Slot Parkir (true = Terisi, false = Kosong)
-  // Nilai awal: Slot A1 terisi (true), sedangkan A2, A3, A4 kosong (false)
   final List<bool> _slotsOccupied = [true, false, false, false];
 
-  // Menyimpan nomor index slot yang sedang ditempati oleh Pengguna aplikasi ini
-  // Bernilai null jika pengguna belum parkir
   int? _myBookedSlot;
   String? _checkInTime;
 
-  // Getter otomatis untuk perhitungan kapasitas
   int get _maxCapacity => _slotsOccupied.length;
   int get _occupiedCount => _slotsOccupied.where((occupied) => occupied).length;
   int get _availableCount => _maxCapacity - _occupiedCount;
   bool get _isFull => _occupiedCount >= _maxCapacity;
   double get _occupancyRate => _occupiedCount / _maxCapacity;
 
-  // --- LOGIKA UNTUK PENGGUNA (USER) ---
   void _bookSlotAsUser(int index) {
-    // Validasi: Pengguna hanya boleh mengambil 1 slot dalam satu waktu
     if (_myBookedSlot != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -67,7 +57,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       return;
     }
 
-    // Jika slot kosong, kunci slot untuk pengguna ini
     if (!_slotsOccupied[index]) {
       final now = TimeOfDay.now();
       setState(() {
@@ -104,9 +93,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     }
   }
 
-  // --- LOGIKA UNTUK ADMIN (SIMULASI SENSOR) ---
   void _adminCarEnter() {
-    // Cari slot pertama yang masih kosong
     final int emptyIndex = _slotsOccupied.indexOf(false);
     if (emptyIndex != -1) {
       setState(() {
@@ -116,7 +103,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
 
   void _adminCarExit() {
-    // Prioritaskan mengeluarkan mobil selain milik pengguna aktif terlebih dahulu
     for (int i = _maxCapacity - 1; i >= 0; i--) {
       if (_slotsOccupied[i] && i != _myBookedSlot) {
         setState(() {
@@ -125,7 +111,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         return;
       }
     }
-    // Jika yang tersisa hanya mobil pengguna aktif, keluarkan juga
     if (_myBookedSlot != null) {
       setState(() {
         _slotsOccupied[_myBookedSlot!] = false;
@@ -138,7 +123,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   void _adminToggleSlot(int index) {
     setState(() {
       _slotsOccupied[index] = !_slotsOccupied[index];
-      // Jika slot yang dimatikan admin adalah slot milik user, hapus tiket user
       if (!_slotsOccupied[index] && _myBookedSlot == index) {
         _myBookedSlot = null;
         _checkInTime = null;
@@ -158,20 +142,30 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Menampilkan Halaman Pilih Peran (Login Gate) jika _activeScreen == 0
+    if (_activeScreen == 0) {
+      return _buildLoginGateScreen();
+    }
+
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.logout),
+          tooltip: 'Keluar / Ganti Akses',
+          onPressed: () => setState(() => _activeScreen = 0),
+        ),
         title: Text(
-          _selectedIndex == 0
-              ? 'Informasi Parkir Pengguna'
+          _activeScreen == 1
+              ? 'User Parking Information'
               : 'Dashboard Admin (Sensor)',
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        backgroundColor: _selectedIndex == 0
+        backgroundColor: _activeScreen == 1
             ? Colors.indigo.shade50
             : Colors.amber.shade100,
         actions: [
-          if (_selectedIndex == 1)
+          if (_activeScreen == 2)
             IconButton(
               onPressed: _resetAll,
               tooltip: 'Kosongkan Semua Slot',
@@ -179,13 +173,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             ),
         ],
       ),
-      // Menampilkan halaman sesuai tab yang dipilih
-      body: _selectedIndex == 0 ? _buildUserDashboard() : _buildAdminDashboard(),
+      body: _activeScreen == 1 ? _buildUserDashboard() : _buildAdminDashboard(),
       bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex,
+        selectedIndex: _activeScreen - 1,
         onDestinationSelected: (index) {
           setState(() {
-            _selectedIndex = index;
+            _activeScreen = index + 1;
           });
         },
         destinations: const [
@@ -197,33 +190,184 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           NavigationDestination(
             icon: Icon(Icons.admin_panel_settings_outlined),
             selectedIcon: Icon(Icons.admin_panel_settings),
-            label: 'Administrator',
+            label: 'Simulasi Admin',
           ),
         ],
       ),
     );
   }
 
-  // ===========================================================================
-  // TAMPILAN 1: DASHBOARD PENGGUNA (USER)
-  // ===========================================================================
+  Widget _buildLoginGateScreen() {
+    return Scaffold(
+      backgroundColor: const Color(0xFF1E1B4B), // Deep Indigo Background
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 400),
+            child: Card(
+              elevation: 4,
+              color: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(28),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        color: Colors.indigo.shade50,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.local_parking_rounded,
+                        size: 52,
+                        color: Colors.indigo,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Smart Parking System',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E1B4B),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Sistem Pemantauan Lahan Parkir Real-Time\n(Kapasitas 4 Slot Utama)',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 12,
+                        horizontal: 16,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF5F7FA),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _buildMiniPreviewStat(
+                            'Kapasitas',
+                            '$_maxCapacity',
+                            Colors.indigo,
+                          ),
+                          Container(
+                            height: 28,
+                            width: 1,
+                            color: Colors.grey.shade300,
+                          ),
+                          _buildMiniPreviewStat(
+                            'Terisi',
+                            '$_occupiedCount',
+                            Colors.orange.shade800,
+                          ),
+                          Container(
+                            height: 28,
+                            width: 1,
+                            color: Colors.grey.shade300,
+                          ),
+                          _buildMiniPreviewStat(
+                            'Tersedia',
+                            '$_availableCount',
+                            Colors.green.shade700,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        onPressed: () => setState(() => _activeScreen = 1),
+                        icon: const Icon(Icons.person),
+                        label: const Text('Masuk sebagai Pengguna'),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: Colors.indigo,
+                          padding: const EdgeInsets.symmetric(vertical: 15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () => setState(() => _activeScreen = 2),
+                        icon: const Icon(Icons.admin_panel_settings),
+                        label: const Text('Masuk sebagai Admin'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.indigo.shade900,
+                          side: BorderSide(color: Colors.indigo.shade200, width: 1.5),
+                          padding: const EdgeInsets.symmetric(vertical: 15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMiniPreviewStat(String label, String value, Color color) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+        Text(
+          label,
+          style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+        ),
+      ],
+    );
+  }
+
   Widget _buildUserDashboard() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. Banner Status Ketersediaan Parkir
           _buildUserStatusBanner(),
           const SizedBox(height: 16),
 
-          // 2. Kartu Tiket Parkir Aktif (Hanya muncul jika user sedang parkir)
           if (_myBookedSlot != null) ...[
             _buildActiveTicketCard(),
             const SizedBox(height: 16),
           ],
 
-          // 3. Judul & Legenda Denah Slot Parkir
           const Text(
             'Pilih Slot Parkir (Lahan Utama)',
             style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
@@ -235,7 +379,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           ),
           const SizedBox(height: 12),
 
-          // Indikator Legenda Warna
           Row(
             children: [
               _buildLegendItem(Colors.green, 'Kosong'),
@@ -247,7 +390,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           ),
           const SizedBox(height: 14),
 
-          // 4. Grid 4 Slot Parkir Interaktif (2 Kolom x 2 Baris)
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -267,7 +409,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     );
   }
 
-  // Banner besar informasi sisa slot untuk Pengguna
   Widget _buildUserStatusBanner() {
     final Color bannerColor =
         _isFull ? Colors.red.shade700 : Colors.green.shade700;
@@ -332,7 +473,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     );
   }
 
-  // Kartu Tiket Aktif saat pengguna berhasil memilih slot
   Widget _buildActiveTicketCard() {
     return Card(
       elevation: 0,
@@ -403,7 +543,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     );
   }
 
-  // Kotak Slot Parkir untuk Pengguna
   Widget _buildInteractiveUserSlotCard(int index) {
     final bool isOccupied = _slotsOccupied[index];
     final bool isMySlot = _myBookedSlot == index;
@@ -510,7 +649,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          // Kartu Ringkasan Admin
           Card(
             elevation: 0,
             color: Colors.white,
@@ -549,7 +687,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           ),
           const SizedBox(height: 16),
 
-          // Kartu Kontrol Sensor Admin
           Card(
             elevation: 1,
             color: Colors.white,
@@ -563,7 +700,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        'Control Sensor Parking System',
+                        'Kontrol Sensor Lahan Parkir',
                         style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
                       ),
                       Container(
@@ -594,7 +731,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   ),
                   const SizedBox(height: 14),
 
-                  // 4 Kotak Sensor yang bisa diklik langsung oleh Admin
                   Row(
                     children: List.generate(_maxCapacity, (index) {
                       final bool isOccupied = _slotsOccupied[index];
@@ -647,7 +783,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Progress Bar
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: LinearProgressIndicator(
@@ -663,7 +798,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Tombol + Mobil Masuk & - Mobil Keluar
                   Row(
                     children: [
                       Expanded(
