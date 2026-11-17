@@ -1,30 +1,48 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:parkir_dashboard/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('App loads login screen and can login as user', (WidgetTester tester) async {
+    await tester.pumpWidget(const ParkingApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // Verifikasi berada di Login Screen
+    expect(find.text('Smart Parking System'), findsOneWidget);
+    expect(find.text('Masuk'), findsOneWidget);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    // Coba login sebagai user
+    await tester.enterText(find.widgetWithText(TextField, 'Username'), 'user');
+    await tester.enterText(find.widgetWithText(TextField, 'Password'), 'user123');
+    await tester.tap(find.text('Masuk'));
+    await tester.pumpAndSettle();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Verifikasi masuk ke User Dashboard
+    expect(find.text('Pengendara'), findsOneWidget);
+    expect(find.text('Pilih Slot Parkir'), findsOneWidget);
+
+    // Logout
+    await tester.tap(find.byIcon(Icons.logout));
+    await tester.pumpAndSettle();
+    expect(find.text('Konfirmasi Keluar'), findsOneWidget);
+    await tester.tap(find.text('Keluar'));
+    await tester.pumpAndSettle();
+
+    // Kembali ke Login Screen
+    expect(find.text('Smart Parking System'), findsOneWidget);
+    expect(find.text('Masuk'), findsOneWidget);
+  });
+
+  testWidgets('Can login as admin and access admin features', (WidgetTester tester) async {
+    await tester.pumpWidget(const ParkingApp());
+
+    // Coba login sebagai admin
+    await tester.enterText(find.widgetWithText(TextField, 'Username'), 'admin');
+    await tester.enterText(find.widgetWithText(TextField, 'Password'), 'admin123');
+    await tester.tap(find.text('Masuk'));
+    await tester.pumpAndSettle();
+
+    // Verifikasi masuk ke Admin Dashboard
+    expect(find.text('Smart Parking - Petugas'), findsOneWidget);
+    expect(find.text('Sensor Hardware ESP32'), findsOneWidget);
   });
 }
