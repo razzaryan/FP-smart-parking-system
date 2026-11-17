@@ -37,6 +37,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int? _myBookedSlot;
   String? _checkInTime;
 
+  bool _wifiConnected = false;
+  String _sensorIp = '192.168.1.100';
+  String _ssidName = 'ESP32_PARKIR';
+  final TextEditingController _ipController =
+      TextEditingController(text: '192.168.1.100');
+
   int get _maxCapacity => _slotsOccupied.length;
   int get _occupiedCount => _slotsOccupied.where((occupied) => occupied).length;
   int get _availableCount => _maxCapacity - _occupiedCount;
@@ -128,6 +134,25 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         _checkInTime = null;
       }
     });
+  }
+
+  void _toggleWifiConnection() {
+    setState(() {
+      _wifiConnected = !_wifiConnected;
+      _sensorIp = _ipController.text;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          _wifiConnected
+              ? 'Terhubung ke $_ssidName ($_sensorIp)'
+              : 'Terputus dari $_ssidName',
+        ),
+        backgroundColor:
+            _wifiConnected ? Colors.green.shade700 : Colors.red.shade700,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   void _resetAll() {
@@ -687,6 +712,83 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           ),
           const SizedBox(height: 16),
 
+          Card(
+            elevation: 1,
+            color: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            _wifiConnected ? Icons.wifi : Icons.wifi_off,
+                            color: _wifiConnected ? Colors.green.shade700 : Colors.grey.shade600,
+                          ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Konektivitas Sensor (Wi-Fi)',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: _wifiConnected ? Colors.green.shade50 : Colors.red.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: _wifiConnected ? Colors.green.shade300 : Colors.red.shade300,
+                          ),
+                        ),
+                        child: Text(
+                          _wifiConnected ? 'TERHUBUNG' : 'TERPUTUS',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: _wifiConnected ? Colors.green.shade800 : Colors.red.shade800,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'SSID: $_ssidName',
+                    style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _ipController,
+                    decoration: const InputDecoration(
+                      labelText: 'IP Sensor ESP32',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed: _toggleWifiConnection,
+                      icon: Icon(_wifiConnected ? Icons.link_off : Icons.link),
+                      label: Text(_wifiConnected ? 'Putuskan Wi-Fi' : 'Hubungkan ke Sensor'),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: _wifiConnected ? Colors.red.shade700 : Colors.indigo,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
           Card(
             elevation: 1,
             color: Colors.white,
