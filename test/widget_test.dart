@@ -3,71 +3,104 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:parkir_dashboard/main.dart';
 
 void main() {
-  testWidgets('App loads login screen and can login as user', (WidgetTester tester) async {
+  testWidgets('User can only book slot when wifi is connected', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1080, 1920);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
+
     await tester.pumpWidget(const ParkingApp());
 
-    // Verifikasi berada di Login Screen
-    expect(find.text('Smart Parking System'), findsOneWidget);
-    expect(find.text('Masuk'), findsOneWidget);
+    // 1. Awalnya Wi-Fi terputus di login screen
+    expect(find.text('Status Wi-Fi: TERPUTUS'), findsOneWidget);
 
-    // Coba login sebagai user
+    // 2. User login saat wifi terputus (bisa masuk)
     await tester.enterText(find.widgetWithText(TextField, 'Username'), 'user');
     await tester.enterText(find.widgetWithText(TextField, 'Password'), 'user123');
     await tester.tap(find.text('Masuk'));
     await tester.pumpAndSettle();
 
-    // Verifikasi masuk ke User Dashboard
-    expect(find.text('Pengendara'), findsOneWidget);
-    expect(find.text('Pilih Slot Parkir'), findsOneWidget);
+    // 3. Status sensor offline di halaman user
+    expect(find.text('Koneksi Sensor Offline'), findsOneWidget);
+    expect(find.text('Offline'), findsWidgets);
 
-    // Logout
+    // 4. Tekan slot kosong (SLOT 2) saat wifi terputus -> gagal / muncul notifikasi
+    await tester.tap(find.text('SLOT 2'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Sensor parkir offline. Pemesanan slot hanya dapat dilakukan saat Wi-Fi terhubung.'),
+      findsOneWidget,
+    );
+
+    // 5. Logout kembali ke login screen
     await tester.tap(find.byIcon(Icons.logout));
     await tester.pumpAndSettle();
-    expect(find.text('Konfirmasi Keluar'), findsOneWidget);
     await tester.tap(find.text('Keluar'));
     await tester.pumpAndSettle();
 
-    // Kembali ke Login Screen
-    expect(find.text('Smart Parking System'), findsOneWidget);
-    expect(find.text('Masuk'), findsOneWidget);
+    // 6. Sambungkan Wi-Fi di login screen
+    await tester.tap(find.text('Sambungkan'));
+    await tester.pumpAndSettle();
+    expect(find.text('Status Wi-Fi: TERHUBUNG'), findsOneWidget);
+
+    // 7. Login kembali sebagai user saat wifi terhubung
+    await tester.enterText(find.widgetWithText(TextField, 'Username'), 'user');
+    await tester.enterText(find.widgetWithText(TextField, 'Password'), 'user123');
+    await tester.tap(find.text('Masuk'));
+    await tester.pumpAndSettle();
+
+    // 8. Banner online & slot tersedia
+    expect(find.text('Slot Tersedia'), findsOneWidget);
+    expect(find.text('Tersedia'), findsWidgets);
+
+    // 9. Pesan Slot 2 berhasil
+    await tester.tap(find.text('SLOT 2'));
+    await tester.pumpAndSettle();
+    expect(find.text('Pesan Slot 2?'), findsOneWidget);
+    await tester.tap(find.text('Pesan Sekarang'));
+    await tester.pumpAndSettle();
+
+    // 10. Tiket aktif muncul
+    expect(find.text('TIKET PARKIR AKTIF'), findsOneWidget);
+    expect(find.text('SLOT 2'), findsWidgets);
   });
 
-  testWidgets('Can login as admin and access admin features', (WidgetTester tester) async {
+  testWidgets('Admin cannot login when wifi is disconnected, can login after wifi connected', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1080, 1920);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
+
     await tester.pumpWidget(const ParkingApp());
 
-    // Coba login sebagai admin
+    // 1. Wi-Fi terputus di awal
+    expect(find.text('Status Wi-Fi: TERPUTUS'), findsOneWidget);
+
+    // 2. Coba login sebagai admin saat wifi terputus -> ditolak
     await tester.enterText(find.widgetWithText(TextField, 'Username'), 'admin');
     await tester.enterText(find.widgetWithText(TextField, 'Password'), 'admin123');
     await tester.tap(find.text('Masuk'));
     await tester.pumpAndSettle();
 
-    // Verifikasi masuk ke Admin Dashboard
+    expect(
+      find.text('Admin hanya bisa mengakses saat Wi-Fi sensor terhubung. Silakan hubungkan ESP32 terlebih dahulu.'),
+      findsOneWidget,
+    );
+
+    // 3. Sambungkan Wi-Fi
+    await tester.tap(find.text('Sambungkan'));
+    await tester.pumpAndSettle();
+    expect(find.text('Status Wi-Fi: TERHUBUNG'), findsOneWidget);
+
+    // 4. Login lagi sebagai admin setelah wifi terhubung -> berhasil
+    await tester.tap(find.text('Masuk'));
+    await tester.pumpAndSettle();
+
     expect(find.text('Smart Parking - Petugas'), findsOneWidget);
     expect(find.text('Sensor Hardware ESP32'), findsOneWidget);
-
-    // Verifikasi slot offline saat Wi-Fi terputus
-    expect(find.text('Sensor: Offline'), findsWidgets);
-
-    // Coba tekan slot saat wifi terputus (harus gagal/muncul snackbar)
-    await tester.tap(find.text('SLOT 1'));
-    await tester.pump();
-    expect(find.text('Wi-Fi sensor terputus. Hubungkan ke ESP32 untuk mengubah status slot.'), findsOneWidget);
-
-    // Tunggu snackbar selesai menghilang
-    await tester.pump(const Duration(seconds: 4));
-    await tester.pumpAndSettle();
-
-    // Hubungkan Wi-Fi
-    await tester.tap(find.text('Hubungkan Wi-Fi Sensor'));
-    await tester.pump();
     expect(find.text('TERHUBUNG'), findsOneWidget);
+    expect(find.text('Sensor: Terdeteksi'), findsWidgets);
 
-    // Tunggu snackbar koneksi menghilang
-    await tester.pump(const Duration(seconds: 4));
-    await tester.pumpAndSettle();
-
-    // Tekan slot saat wifi terhubung (berhasil mengubah status)
-    await tester.tap(find.text('SLOT 1'), warnIfMissed: false);
+    // 5. Admin memiliki otoritas penuh mengubah slot
+    await tester.tap(find.text('SLOT 1'));
     await tester.pumpAndSettle();
     expect(find.text('Sensor: Kosong'), findsWidgets);
   });

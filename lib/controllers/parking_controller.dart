@@ -23,7 +23,17 @@ class ParkingController extends ChangeNotifier {
   bool get isFull => occupiedCount >= maxCapacity;
   double get occupancyRate => occupiedCount / maxCapacity;
 
-  bool bookSlot(int index, {required VoidCallback onAlreadyBooked, required VoidCallback onSuccess}) {
+  bool bookSlot(
+    int index, {
+    required VoidCallback onAlreadyBooked,
+    required VoidCallback onWifiDisconnected,
+    required VoidCallback onSuccess,
+  }) {
+    if (!_wifiConnected) {
+      onWifiDisconnected();
+      return false;
+    }
+
     if (_myBookedSlot != null) {
       onAlreadyBooked();
       return false;

@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {
+  final bool isWifiConnected;
+  final VoidCallback onToggleWifiSimulation;
   final Function(String role) onLoginSuccess;
 
   const LoginScreen({
     super.key,
+    required this.isWifiConnected,
+    required this.onToggleWifiSimulation,
     required this.onLoginSuccess,
   });
 
@@ -41,6 +45,13 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     if (username == 'admin' && password == 'admin123') {
+      if (!widget.isWifiConnected) {
+        setState(() {
+          _errorMessage =
+              'Admin hanya bisa mengakses saat Wi-Fi sensor terhubung. Silakan hubungkan ESP32 terlebih dahulu.';
+        });
+        return;
+      }
       widget.onLoginSuccess('admin');
       return;
     }
@@ -110,6 +121,53 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 28),
+
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: widget.isWifiConnected ? Colors.green.shade50 : Colors.red.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: widget.isWifiConnected ? Colors.green.shade200 : Colors.red.shade200,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          widget.isWifiConnected ? Icons.wifi : Icons.wifi_off,
+                          color: widget.isWifiConnected ? Colors.green.shade700 : Colors.red.shade700,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            widget.isWifiConnected
+                                ? 'Status Wi-Fi: TERHUBUNG'
+                                : 'Status Wi-Fi: TERPUTUS',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: widget.isWifiConnected
+                                  ? Colors.green.shade800
+                                  : Colors.red.shade800,
+                            ),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: widget.onToggleWifiSimulation,
+                          style: TextButton.styleFrom(
+                            visualDensity: VisualDensity.compact,
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                          ),
+                          child: Text(
+                            widget.isWifiConnected ? 'Putuskan' : 'Sambungkan',
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
 
                   if (_errorMessage != null) ...[
                     Container(

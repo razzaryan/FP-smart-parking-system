@@ -66,6 +66,7 @@ class UserDashboardScreen extends StatelessWidget {
               UserStatusBanner(
                 isFull: controller.isFull,
                 availableCount: controller.availableCount,
+                wifiConnected: controller.wifiConnected,
               ),
               const SizedBox(height: 20),
               if (controller.myBookedSlot != null) ...[
@@ -120,9 +121,20 @@ class UserDashboardScreen extends StatelessWidget {
                     index: index,
                     isOccupied: controller.slotsOccupied[index],
                     isMySlot: controller.myBookedSlot == index,
+                    isOffline: !controller.wifiConnected,
                     onTap: () {
                       if (controller.myBookedSlot == index) {
                         _showCheckoutDialog(context);
+                      } else if (!controller.wifiConnected) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text(
+                              'Sensor parkir offline. Pemesanan slot hanya dapat dilakukan saat Wi-Fi terhubung.',
+                            ),
+                            backgroundColor: Colors.orange.shade800,
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
                       } else if (!controller.slotsOccupied[index]) {
                         _showBookingConfirmDialog(context, index);
                       } else {
@@ -224,6 +236,17 @@ class UserDashboardScreen extends StatelessWidget {
               Navigator.pop(ctx);
               controller.bookSlot(
                 index,
+                onWifiDisconnected: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text(
+                        'Sensor parkir offline. Pemesanan slot hanya dapat dilakukan saat Wi-Fi terhubung.',
+                      ),
+                      backgroundColor: Colors.orange.shade800,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                },
                 onAlreadyBooked: () {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
