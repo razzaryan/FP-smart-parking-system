@@ -61,8 +61,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     }
 
     return LoginScreen(
-      isWifiConnected: _controller.wifiConnected,
-      onToggleWifiSimulation: () => _controller.toggleWifi(_controller.sensorIp),
       onLoginSuccess: _login,
     );
   }

@@ -4,7 +4,6 @@ class SlotCard extends StatelessWidget {
   final int index;
   final bool isOccupied;
   final bool isMySlot;
-  final bool isOffline;
   final VoidCallback onTap;
 
   const SlotCard({
@@ -12,7 +11,6 @@ class SlotCard extends StatelessWidget {
     required this.index,
     required this.isOccupied,
     required this.isMySlot,
-    this.isOffline = false,
     required this.onTap,
   });
 
@@ -22,11 +20,7 @@ class SlotCard extends StatelessWidget {
     Color borderColor;
     Color accentColor;
 
-    if (isOffline && !isMySlot) {
-      cardColor = Colors.grey.shade100;
-      borderColor = Colors.grey.shade300;
-      accentColor = Colors.grey.shade500;
-    } else if (isMySlot) {
+    if (isMySlot) {
       cardColor = Colors.indigo.shade50;
       borderColor = Colors.indigo.shade400;
       accentColor = Colors.indigo.shade700;
@@ -59,9 +53,7 @@ class SlotCard extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
-                  color: isMySlot
-                      ? Colors.indigo.shade900
-                      : (isOffline ? Colors.grey.shade600 : Colors.grey.shade700),
+                  color: isMySlot ? Colors.indigo.shade900 : Colors.grey.shade700,
                   letterSpacing: 0.8,
                 ),
               ),
@@ -69,9 +61,7 @@ class SlotCard extends StatelessWidget {
               Icon(
                 isMySlot
                     ? Icons.directions_car_filled
-                    : (isOffline
-                        ? Icons.cloud_off_rounded
-                        : (isOccupied ? Icons.directions_car : Icons.local_parking)),
+                    : (isOccupied ? Icons.directions_car : Icons.local_parking),
                 size: 38,
                 color: accentColor,
               ),
@@ -85,7 +75,7 @@ class SlotCard extends StatelessWidget {
                 child: Text(
                   isMySlot
                       ? 'Slot Anda'
-                      : (isOffline ? 'Offline' : (isOccupied ? 'Terisi' : 'Tersedia')),
+                      : (isOccupied ? 'Terisi' : 'Tersedia'),
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,

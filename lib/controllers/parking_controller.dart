@@ -26,14 +26,9 @@ class ParkingController extends ChangeNotifier {
   bool bookSlot(
     int index, {
     required VoidCallback onAlreadyBooked,
-    required VoidCallback onWifiDisconnected,
+    VoidCallback? onWifiDisconnected,
     required VoidCallback onSuccess,
   }) {
-    if (!_wifiConnected) {
-      onWifiDisconnected();
-      return false;
-    }
-
     if (_myBookedSlot != null) {
       onAlreadyBooked();
       return false;
