@@ -44,5 +44,31 @@ void main() {
     // Verifikasi masuk ke Admin Dashboard
     expect(find.text('Smart Parking - Petugas'), findsOneWidget);
     expect(find.text('Sensor Hardware ESP32'), findsOneWidget);
+
+    // Verifikasi slot offline saat Wi-Fi terputus
+    expect(find.text('Sensor: Offline'), findsWidgets);
+
+    // Coba tekan slot saat wifi terputus (harus gagal/muncul snackbar)
+    await tester.tap(find.text('SLOT 1'));
+    await tester.pump();
+    expect(find.text('Wi-Fi sensor terputus. Hubungkan ke ESP32 untuk mengubah status slot.'), findsOneWidget);
+
+    // Tunggu snackbar selesai menghilang
+    await tester.pump(const Duration(seconds: 4));
+    await tester.pumpAndSettle();
+
+    // Hubungkan Wi-Fi
+    await tester.tap(find.text('Hubungkan Wi-Fi Sensor'));
+    await tester.pump();
+    expect(find.text('TERHUBUNG'), findsOneWidget);
+
+    // Tunggu snackbar koneksi menghilang
+    await tester.pump(const Duration(seconds: 4));
+    await tester.pumpAndSettle();
+
+    // Tekan slot saat wifi terhubung (berhasil mengubah status)
+    await tester.tap(find.text('SLOT 1'), warnIfMissed: false);
+    await tester.pumpAndSettle();
+    expect(find.text('Sensor: Kosong'), findsWidgets);
   });
 }

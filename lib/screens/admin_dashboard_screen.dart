@@ -96,6 +96,16 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             icon: const Icon(Icons.refresh_rounded),
             tooltip: 'Reset Simulasi',
             onPressed: () {
+              if (!controller.wifiConnected) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text('Wi-Fi sensor terputus. Hubungkan ke ESP32 untuk mereset slot.'),
+                    backgroundColor: Colors.red.shade700,
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+                return;
+              }
               controller.resetAll();
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
@@ -277,15 +287,33 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   return Material(
                     color: Colors.transparent,
                     child: InkWell(
-                      onTap: () => controller.adminToggleSlot(index),
+                      onTap: () {
+                        if (!controller.wifiConnected) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: const Text(
+                                'Wi-Fi sensor terputus. Hubungkan ke ESP32 untuk mengubah status slot.',
+                              ),
+                              backgroundColor: Colors.red.shade700,
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                          return;
+                        }
+                        controller.adminToggleSlot(index);
+                      },
                       borderRadius: BorderRadius.circular(16),
                       child: Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: isOccupied ? Colors.red.shade50 : Colors.green.shade50,
+                          color: !controller.wifiConnected
+                              ? Colors.grey.shade100
+                              : (isOccupied ? Colors.red.shade50 : Colors.green.shade50),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: isOccupied ? Colors.red.shade200 : Colors.green.shade200,
+                            color: !controller.wifiConnected
+                                ? Colors.grey.shade300
+                                : (isOccupied ? Colors.red.shade200 : Colors.green.shade200),
                           ),
                         ),
                         child: Column(
@@ -293,21 +321,33 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                           children: [
                             Text(
                               'SLOT ${index + 1}',
-                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: !controller.wifiConnected ? Colors.grey.shade600 : Colors.black87,
+                              ),
                             ),
                             const SizedBox(height: 6),
                             Icon(
-                              isOccupied ? Icons.sensors : Icons.sensors_off,
-                              color: isOccupied ? Colors.red.shade700 : Colors.green.shade700,
+                              !controller.wifiConnected
+                                  ? Icons.sensors_off
+                                  : (isOccupied ? Icons.sensors : Icons.sensors_off),
+                              color: !controller.wifiConnected
+                                  ? Colors.grey.shade400
+                                  : (isOccupied ? Colors.red.shade700 : Colors.green.shade700),
                               size: 28,
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              isOccupied ? 'Sensor: Terdeteksi' : 'Sensor: Kosong',
+                              !controller.wifiConnected
+                                  ? 'Sensor: Offline'
+                                  : (isOccupied ? 'Sensor: Terdeteksi' : 'Sensor: Kosong'),
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
-                                color: isOccupied ? Colors.red.shade800 : Colors.green.shade800,
+                                color: !controller.wifiConnected
+                                    ? Colors.grey.shade600
+                                    : (isOccupied ? Colors.red.shade800 : Colors.green.shade800),
                               ),
                             ),
                           ],
@@ -339,7 +379,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       children: [
                         Expanded(
                           child: ElevatedButton.icon(
-                            onPressed: controller.isFull ? null : controller.adminCarEnter,
+                            onPressed: (!controller.wifiConnected || controller.isFull)
+                                ? null
+                                : controller.adminCarEnter,
                             icon: const Icon(Icons.login),
                             label: const Text('Mobil Masuk'),
                             style: ElevatedButton.styleFrom(
@@ -352,7 +394,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: OutlinedButton.icon(
-                            onPressed: controller.occupiedCount == 0 ? null : controller.adminCarExit,
+                            onPressed: (!controller.wifiConnected || controller.occupiedCount == 0)
+                                ? null
+                                : controller.adminCarExit,
                             icon: const Icon(Icons.logout),
                             label: const Text('Mobil Keluar'),
                             style: OutlinedButton.styleFrom(
@@ -362,6 +406,17 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         ),
                       ],
                     ),
+                    if (!controller.wifiConnected) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        'Simulator gerbang dinonaktifkan saat sensor offline.',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.orange.shade800,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),

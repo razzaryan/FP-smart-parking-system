@@ -54,20 +54,24 @@ class ParkingController extends ChangeNotifier {
     return null;
   }
 
-  void adminCarEnter() {
+  bool adminCarEnter() {
+    if (!_wifiConnected) return false;
     final int emptyIndex = _slotsOccupied.indexOf(false);
     if (emptyIndex != -1) {
       _slotsOccupied[emptyIndex] = true;
       notifyListeners();
+      return true;
     }
+    return false;
   }
 
-  void adminCarExit() {
+  bool adminCarExit() {
+    if (!_wifiConnected) return false;
     for (int i = maxCapacity - 1; i >= 0; i--) {
       if (_slotsOccupied[i] && i != _myBookedSlot) {
         _slotsOccupied[i] = false;
         notifyListeners();
-        return;
+        return true;
       }
     }
     if (_myBookedSlot != null) {
@@ -75,16 +79,22 @@ class ParkingController extends ChangeNotifier {
       _myBookedSlot = null;
       _checkInTime = null;
       notifyListeners();
+      return true;
     }
+    return false;
   }
 
-  void adminToggleSlot(int index) {
+  bool adminToggleSlot(int index) {
+    if (!_wifiConnected) {
+      return false;
+    }
     _slotsOccupied[index] = !_slotsOccupied[index];
     if (!_slotsOccupied[index] && _myBookedSlot == index) {
       _myBookedSlot = null;
       _checkInTime = null;
     }
     notifyListeners();
+    return true;
   }
 
   void toggleWifi(String ip) {
@@ -93,12 +103,14 @@ class ParkingController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void resetAll() {
+  bool resetAll() {
+    if (!_wifiConnected) return false;
     for (int i = 0; i < maxCapacity; i++) {
       _slotsOccupied[i] = false;
     }
     _myBookedSlot = null;
     _checkInTime = null;
     notifyListeners();
+    return true;
   }
 }
