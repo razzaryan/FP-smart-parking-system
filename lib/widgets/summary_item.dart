@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
 
 class SummaryItem extends StatelessWidget {
   final String label;
@@ -31,10 +32,10 @@ class SummaryItem extends StatelessWidget {
         const SizedBox(height: 2),
         Text(
           label,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 12,
-            color: Colors.grey.shade700,
-            fontWeight: FontWeight.w500,
+            color: AppColors.textMuted,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ],

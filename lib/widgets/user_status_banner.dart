@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
 
 class UserStatusBanner extends StatelessWidget {
   final bool isFull;
@@ -12,22 +13,36 @@ class UserStatusBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final statusColor = isFull ? AppColors.statusDanger : AppColors.statusSuccess;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isFull ? Colors.red.shade50 : Colors.green.shade50,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isFull ? Colors.red.shade200 : Colors.green.shade200,
-        ),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: statusColor.withValues(alpha: 0.35)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.secondary.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
-          Icon(
-            isFull ? Icons.do_not_disturb_on : Icons.check_circle,
-            color: isFull ? Colors.red.shade700 : Colors.green.shade700,
-            size: 32,
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: statusColor.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              isFull ? Icons.do_not_disturb_on : Icons.check_circle,
+              color: statusColor,
+              size: 26,
+            ),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -39,16 +54,16 @@ class UserStatusBanner extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: isFull ? Colors.red.shade900 : Colors.green.shade900,
+                    color: statusColor,
                   ),
                 ),
                 Text(
                   isFull
                       ? 'Mohon tunggu kendaraan lain keluar.'
                       : '$availableCount dari 4 slot siap digunakan.',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 13,
-                    color: isFull ? Colors.red.shade700 : Colors.green.shade700,
+                    color: AppColors.textMuted,
                   ),
                 ),
               ],

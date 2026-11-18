@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'screens/main_navigation_screen.dart';
+import 'theme/app_colors.dart';
 
 void main() {
   runApp(const ParkingApp());
@@ -15,8 +16,28 @@ class ParkingApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        colorSchemeSeed: Colors.indigo,
-        scaffoldBackgroundColor: const Color(0xFFF5F7FA),
+        scaffoldBackgroundColor: AppColors.primary,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppColors.secondary,
+          primary: AppColors.secondary,
+          secondary: AppColors.accent,
+          surface: AppColors.surface,
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: AppColors.secondary,
+          foregroundColor: AppColors.textLight,
+          elevation: 0,
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.accent,
+            foregroundColor: AppColors.secondary,
+            textStyle: const TextStyle(fontWeight: FontWeight.bold),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        ),
       ),
       home: const MainNavigationScreen(),
     );

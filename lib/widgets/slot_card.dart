@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
 
 class SlotCard extends StatelessWidget {
   final int index;
@@ -18,20 +19,20 @@ class SlotCard extends StatelessWidget {
   Widget build(BuildContext context) {
     Color cardColor;
     Color borderColor;
-    Color accentColor;
+    Color statusColor;
 
     if (isMySlot) {
-      cardColor = Colors.indigo.shade50;
-      borderColor = Colors.indigo.shade400;
-      accentColor = Colors.indigo.shade700;
+      cardColor = AppColors.secondary;
+      borderColor = AppColors.accent;
+      statusColor = AppColors.accent;
     } else if (isOccupied) {
-      cardColor = Colors.red.shade50;
-      borderColor = Colors.red.shade200;
-      accentColor = Colors.red.shade700;
+      cardColor = AppColors.surface;
+      borderColor = AppColors.statusDanger.withValues(alpha: 0.35);
+      statusColor = AppColors.statusDanger;
     } else {
-      cardColor = Colors.green.shade50;
-      borderColor = Colors.green.shade200;
-      accentColor = Colors.green.shade700;
+      cardColor = AppColors.surface;
+      borderColor = AppColors.statusSuccess.withValues(alpha: 0.35);
+      statusColor = AppColors.statusSuccess;
     }
 
     return Material(
@@ -44,6 +45,15 @@ class SlotCard extends StatelessWidget {
             color: cardColor,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: borderColor, width: isMySlot ? 2 : 1),
+            boxShadow: [
+              BoxShadow(
+                color: isMySlot
+                    ? AppColors.secondary.withValues(alpha: 0.2)
+                    : Colors.black.withValues(alpha: 0.03),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -53,7 +63,7 @@ class SlotCard extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
-                  color: isMySlot ? Colors.indigo.shade900 : Colors.grey.shade700,
+                  color: isMySlot ? Colors.white : AppColors.secondary,
                   letterSpacing: 0.8,
                 ),
               ),
@@ -63,14 +73,17 @@ class SlotCard extends StatelessWidget {
                     ? Icons.directions_car_filled
                     : (isOccupied ? Icons.directions_car : Icons.local_parking),
                 size: 38,
-                color: accentColor,
+                color: statusColor,
               ),
               const SizedBox(height: 10),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                 decoration: BoxDecoration(
-                  color: accentColor.withValues(alpha: 0.15),
+                  color: isMySlot
+                      ? AppColors.accent.withValues(alpha: 0.2)
+                      : statusColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(20),
+                  border: isMySlot ? Border.all(color: AppColors.accent) : null,
                 ),
                 child: Text(
                   isMySlot
@@ -79,7 +92,7 @@ class SlotCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
-                    color: accentColor,
+                    color: statusColor,
                   ),
                 ),
               ),

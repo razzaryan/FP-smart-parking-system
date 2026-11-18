@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../controllers/parking_controller.dart';
+import '../theme/app_colors.dart';
 import '../widgets/summary_item.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
@@ -42,11 +43,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             onPressed: () => Navigator.pop(ctx),
             child: const Text('Batal'),
           ),
-          FilledButton(
+          ElevatedButton(
             onPressed: () {
               Navigator.pop(ctx);
               widget.onLogout();
             },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.statusDanger,
+              foregroundColor: Colors.white,
+            ),
             child: const Text('Keluar'),
           ),
         ],
@@ -59,48 +64,52 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     final controller = widget.controller;
 
     return Scaffold(
+      backgroundColor: AppColors.primary,
       appBar: AppBar(
         title: const Text(
           'Smart Parking - Petugas',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+            color: Colors.white,
+          ),
         ),
         centerTitle: false,
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.secondary,
         elevation: 0,
-        scrolledUnderElevation: 1,
         actions: [
           Container(
             margin: const EdgeInsets.only(right: 8),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: Colors.teal.shade50,
+              color: AppColors.accent,
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Row(
+            child: const Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.shield_outlined, size: 14, color: Colors.teal.shade700),
-                const SizedBox(width: 4),
+                Icon(Icons.shield_outlined, size: 14, color: AppColors.secondary),
+                SizedBox(width: 4),
                 Text(
                   'Petugas',
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.teal.shade700,
-                    fontWeight: FontWeight.w600,
+                    color: AppColors.secondary,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ],
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.refresh_rounded),
+            icon: const Icon(Icons.refresh_rounded, color: Colors.white),
             tooltip: 'Reset Simulasi',
             onPressed: () {
               if (!controller.wifiConnected) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text('Wi-Fi sensor terputus. Hubungkan ke ESP32 untuk mereset slot.'),
-                    backgroundColor: Colors.red.shade700,
+                  const SnackBar(
+                    content: Text('Wi-Fi sensor terputus. Hubungkan ke ESP32 untuk mereset slot.'),
+                    backgroundColor: AppColors.statusDanger,
                     behavior: SnackBarBehavior.floating,
                   ),
                 );
@@ -110,17 +119,54 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Semua slot parkir direset menjadi kosong.'),
+                  backgroundColor: AppColors.secondary,
                   behavior: SnackBarBehavior.floating,
                 ),
               );
             },
           ),
           IconButton(
-            icon: const Icon(Icons.logout, color: Colors.black54),
+            icon: const Icon(Icons.logout, color: Colors.white70),
             tooltip: 'Keluar Akun',
             onPressed: () => _confirmLogout(context),
           ),
         ],
+      ),
+      bottomNavigationBar: Container(
+        height: 52,
+        color: AppColors.secondary,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.wifi,
+                  size: 16,
+                  color: controller.wifiConnected ? AppColors.accent : Colors.white38,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'ESP32: ${controller.wifiConnected ? controller.sensorIp : "Offline"}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+            Text(
+              'Terisi: ${controller.occupiedCount} / ${controller.maxCapacity}',
+              style: const TextStyle(
+                color: Colors.white70,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -132,14 +178,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.grey.shade200),
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.surfaceBorder),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.03),
+                      color: AppColors.secondary.withValues(alpha: 0.04),
                       blurRadius: 10,
-                      offset: const Offset(0, 4),
+                      offset: const Offset(0, 3),
                     ),
                   ],
                 ),
@@ -149,21 +195,21 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     SummaryItem(
                       label: 'Total Slot',
                       value: '${controller.maxCapacity}',
-                      color: Colors.indigo,
+                      color: AppColors.secondary,
                       icon: Icons.local_parking,
                     ),
-                    Container(width: 1, height: 48, color: Colors.grey.shade200),
+                    Container(width: 1, height: 48, color: AppColors.surfaceBorder),
                     SummaryItem(
                       label: 'Tersedia',
                       value: '${controller.availableCount}',
-                      color: controller.isFull ? Colors.red : Colors.green,
+                      color: controller.isFull ? AppColors.statusDanger : AppColors.statusSuccess,
                       icon: Icons.check_circle_outline,
                     ),
-                    Container(width: 1, height: 48, color: Colors.grey.shade200),
+                    Container(width: 1, height: 48, color: AppColors.surfaceBorder),
                     SummaryItem(
                       label: 'Terisi',
                       value: '${controller.occupiedCount}',
-                      color: Colors.orange.shade800,
+                      color: AppColors.statusWarning,
                       icon: Icons.directions_car_outlined,
                     ),
                   ],
@@ -176,9 +222,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.surface,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.grey.shade200),
+                  border: Border.all(color: AppColors.surfaceBorder),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -190,22 +236,30 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                           children: [
                             Icon(
                               Icons.wifi,
-                              color: controller.wifiConnected ? Colors.green.shade700 : Colors.grey.shade600,
+                              color: controller.wifiConnected ? AppColors.statusSuccess : AppColors.textMuted,
                             ),
                             const SizedBox(width: 8),
                             const Text(
                               'Sensor Hardware ESP32',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: AppColors.secondary,
+                              ),
                             ),
                           ],
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
-                            color: controller.wifiConnected ? Colors.green.shade50 : Colors.red.shade50,
+                            color: controller.wifiConnected
+                                ? AppColors.statusSuccess.withValues(alpha: 0.12)
+                                : AppColors.statusDanger.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: controller.wifiConnected ? Colors.green.shade300 : Colors.red.shade300,
+                              color: controller.wifiConnected
+                                  ? AppColors.statusSuccess.withValues(alpha: 0.3)
+                                  : AppColors.statusDanger.withValues(alpha: 0.3),
                             ),
                           ),
                           child: Text(
@@ -213,7 +267,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
-                              color: controller.wifiConnected ? Colors.green.shade800 : Colors.red.shade800,
+                              color: controller.wifiConnected ? AppColors.statusSuccess : AppColors.statusDanger,
                             ),
                           ),
                         ),
@@ -222,7 +276,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     const SizedBox(height: 12),
                     Text(
                       'SSID: ${controller.ssidName}',
-                      style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+                      style: const TextStyle(fontSize: 13, color: AppColors.textMuted),
                     ),
                     const SizedBox(height: 8),
                     TextField(
@@ -247,8 +301,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                                     ? 'Terhubung ke ${controller.ssidName} (${controller.sensorIp})'
                                     : 'Terputus dari ${controller.ssidName}',
                               ),
-                              backgroundColor:
-                                  controller.wifiConnected ? Colors.green.shade700 : Colors.red.shade700,
+                              backgroundColor: controller.wifiConnected
+                                  ? AppColors.secondary
+                                  : AppColors.statusDanger,
                               behavior: SnackBarBehavior.floating,
                             ),
                           );
@@ -256,8 +311,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         icon: Icon(controller.wifiConnected ? Icons.wifi_off : Icons.wifi),
                         label: Text(controller.wifiConnected ? 'Putuskan Wi-Fi Sensor' : 'Hubungkan Wi-Fi Sensor'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: controller.wifiConnected ? Colors.red.shade600 : Colors.teal,
-                          foregroundColor: Colors.white,
+                          backgroundColor: controller.wifiConnected ? AppColors.statusDanger : AppColors.accent,
+                          foregroundColor: controller.wifiConnected ? Colors.white : AppColors.secondary,
                         ),
                       ),
                     ),
@@ -269,7 +324,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               // Slot Controls
               const Text(
                 'Kontrol & Status Slot Fisik',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E1B4B)),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.secondary),
               ),
               const SizedBox(height: 12),
               GridView.builder(
@@ -284,17 +339,21 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 itemCount: controller.maxCapacity,
                 itemBuilder: (context, index) {
                   final isOccupied = controller.slotsOccupied[index];
+                  final slotStatusColor = !controller.wifiConnected
+                      ? AppColors.textMuted
+                      : (isOccupied ? AppColors.statusDanger : AppColors.statusSuccess);
+
                   return Material(
                     color: Colors.transparent,
                     child: InkWell(
                       onTap: () {
                         if (!controller.wifiConnected) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: const Text(
+                            const SnackBar(
+                              content: Text(
                                 'Wi-Fi sensor terputus. Hubungkan ke ESP32 untuk mengubah status slot.',
                               ),
-                              backgroundColor: Colors.red.shade700,
+                              backgroundColor: AppColors.statusDanger,
                               behavior: SnackBarBehavior.floating,
                             ),
                           );
@@ -306,14 +365,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: !controller.wifiConnected
-                              ? Colors.grey.shade100
-                              : (isOccupied ? Colors.red.shade50 : Colors.green.shade50),
+                          color: AppColors.surface,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: !controller.wifiConnected
-                                ? Colors.grey.shade300
-                                : (isOccupied ? Colors.red.shade200 : Colors.green.shade200),
+                            color: slotStatusColor.withValues(alpha: 0.35),
                           ),
                         ),
                         child: Column(
@@ -321,10 +376,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                           children: [
                             Text(
                               'SLOT ${index + 1}',
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
-                                color: !controller.wifiConnected ? Colors.grey.shade600 : Colors.black87,
+                                color: AppColors.secondary,
                               ),
                             ),
                             const SizedBox(height: 6),
@@ -332,9 +387,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                               !controller.wifiConnected
                                   ? Icons.sensors_off
                                   : (isOccupied ? Icons.sensors : Icons.sensors_off),
-                              color: !controller.wifiConnected
-                                  ? Colors.grey.shade400
-                                  : (isOccupied ? Colors.red.shade700 : Colors.green.shade700),
+                              color: slotStatusColor,
                               size: 28,
                             ),
                             const SizedBox(height: 4),
@@ -345,9 +398,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
-                                color: !controller.wifiConnected
-                                    ? Colors.grey.shade600
-                                    : (isOccupied ? Colors.red.shade800 : Colors.green.shade800),
+                                color: slotStatusColor,
                               ),
                             ),
                           ],
@@ -363,16 +414,20 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.surface,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.grey.shade200),
+                  border: Border.all(color: AppColors.surfaceBorder),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
                       'Simulator Gerbang Masuk / Keluar',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        color: AppColors.secondary,
+                      ),
                     ),
                     const SizedBox(height: 12),
                     Row(
@@ -385,8 +440,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                             icon: const Icon(Icons.login),
                             label: const Text('Mobil Masuk'),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.indigo,
-                              foregroundColor: Colors.white,
+                              backgroundColor: AppColors.accent,
+                              foregroundColor: AppColors.secondary,
                               padding: const EdgeInsets.symmetric(vertical: 12),
                             ),
                           ),
@@ -400,6 +455,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                             icon: const Icon(Icons.logout),
                             label: const Text('Mobil Keluar'),
                             style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.secondary,
+                              side: const BorderSide(color: AppColors.secondary),
                               padding: const EdgeInsets.symmetric(vertical: 12),
                             ),
                           ),
@@ -408,12 +465,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     ),
                     if (!controller.wifiConnected) ...[
                       const SizedBox(height: 8),
-                      Text(
+                      const Text(
                         'Simulator gerbang dinonaktifkan saat sensor offline.',
                         style: TextStyle(
                           fontSize: 11,
-                          color: Colors.orange.shade800,
-                          fontWeight: FontWeight.w500,
+                          color: AppColors.statusWarning,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],

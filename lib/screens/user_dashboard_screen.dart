@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../controllers/parking_controller.dart';
+import '../theme/app_colors.dart';
 import '../widgets/user_status_banner.dart';
 import '../widgets/active_ticket_card.dart';
 import '../widgets/slot_card.dart';
@@ -17,45 +18,88 @@ class UserDashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.primary,
       appBar: AppBar(
         title: const Text(
           'Smart Parking',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+            color: Colors.white,
+          ),
         ),
         centerTitle: false,
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.secondary,
         elevation: 0,
-        scrolledUnderElevation: 1,
         actions: [
           Container(
             margin: const EdgeInsets.only(right: 8),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: Colors.indigo.shade50,
+              color: AppColors.accent,
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Row(
+            child: const Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.person, size: 14, color: Colors.indigo.shade700),
-                const SizedBox(width: 4),
+                Icon(Icons.person, size: 14, color: AppColors.secondary),
+                SizedBox(width: 4),
                 Text(
                   'Pengendara',
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.indigo.shade700,
-                    fontWeight: FontWeight.w600,
+                    color: AppColors.secondary,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ],
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.logout, color: Colors.black54),
+            icon: const Icon(Icons.logout, color: Colors.white70),
             tooltip: 'Keluar Akun',
             onPressed: () => _confirmLogout(context),
           ),
         ],
+      ),
+      bottomNavigationBar: Container(
+        height: 52,
+        color: AppColors.secondary,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.local_parking, color: AppColors.accent, size: 16),
+                const SizedBox(width: 8),
+                Text(
+                  'Sisa Slot: ${controller.availableCount} / ${controller.maxCapacity}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: controller.isFull ? AppColors.statusDanger : AppColors.statusSuccess,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                controller.isFull ? 'PENUH' : 'TERSEDIA',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -78,7 +122,7 @@ class UserDashboardScreen extends StatelessWidget {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text('Anda telah keluar dari Slot $released. Terima kasih!'),
-                          backgroundColor: Colors.indigo,
+                          backgroundColor: AppColors.secondary,
                           behavior: SnackBarBehavior.floating,
                         ),
                       );
@@ -87,20 +131,20 @@ class UserDashboardScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
               ],
-              Row(
+              const Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Pilih Slot Parkir',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E1B4B),
+                      color: AppColors.secondary,
                     ),
                   ),
                   Text(
                     'Ketuk slot kosong untuk memesan',
-                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                    style: TextStyle(fontSize: 12, color: AppColors.textMuted),
                   ),
                 ],
               ),
@@ -129,7 +173,7 @@ class UserDashboardScreen extends StatelessWidget {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text('Slot ${index + 1} sedang terisi kendaraan lain.'),
-                            backgroundColor: Colors.red.shade700,
+                            backgroundColor: AppColors.statusDanger,
                             behavior: SnackBarBehavior.floating,
                           ),
                         );
@@ -142,16 +186,16 @@ class UserDashboardScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.surface,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade200),
+                  border: Border.all(color: AppColors.surfaceBorder),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _buildLegendItem(color: Colors.green, label: 'Tersedia'),
-                    _buildLegendItem(color: Colors.red, label: 'Terisi'),
-                    _buildLegendItem(color: Colors.indigo, label: 'Slot Anda'),
+                    _buildLegendItem(color: AppColors.statusSuccess, label: 'Tersedia'),
+                    _buildLegendItem(color: AppColors.statusDanger, label: 'Terisi'),
+                    _buildLegendItem(color: AppColors.secondary, label: 'Slot Anda'),
                   ],
                 ),
               ),
@@ -173,9 +217,9 @@ class UserDashboardScreen extends StatelessWidget {
         const SizedBox(width: 6),
         Text(
           label,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 12,
-            color: Colors.grey.shade700,
+            color: AppColors.textDark,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -194,11 +238,15 @@ class UserDashboardScreen extends StatelessWidget {
             onPressed: () => Navigator.pop(ctx),
             child: const Text('Batal'),
           ),
-          FilledButton(
+          ElevatedButton(
             onPressed: () {
               Navigator.pop(ctx);
               onLogout();
             },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.statusDanger,
+              foregroundColor: Colors.white,
+            ),
             child: const Text('Keluar'),
           ),
         ],
@@ -219,7 +267,7 @@ class UserDashboardScreen extends StatelessWidget {
             onPressed: () => Navigator.pop(ctx),
             child: const Text('Batal'),
           ),
-          FilledButton(
+          ElevatedButton(
             onPressed: () {
               Navigator.pop(ctx);
               controller.bookSlot(
@@ -230,7 +278,7 @@ class UserDashboardScreen extends StatelessWidget {
                       content: Text(
                         'Anda sudah memesan Slot ${controller.myBookedSlot! + 1}. Selesaikan pemesanan aktif terlebih dahulu.',
                       ),
-                      backgroundColor: Colors.orange.shade800,
+                      backgroundColor: AppColors.statusWarning,
                       behavior: SnackBarBehavior.floating,
                     ),
                   );
@@ -239,13 +287,17 @@ class UserDashboardScreen extends StatelessWidget {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Berhasil memesan Slot ${index + 1}!'),
-                      backgroundColor: Colors.green.shade700,
+                      backgroundColor: AppColors.statusSuccess,
                       behavior: SnackBarBehavior.floating,
                     ),
                   );
                 },
               );
             },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.accent,
+              foregroundColor: AppColors.secondary,
+            ),
             child: const Text('Pesan Sekarang'),
           ),
         ],
@@ -266,8 +318,11 @@ class UserDashboardScreen extends StatelessWidget {
             onPressed: () => Navigator.pop(ctx),
             child: const Text('Batal'),
           ),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.statusDanger,
+              foregroundColor: Colors.white,
+            ),
             onPressed: () {
               Navigator.pop(ctx);
               final released = controller.checkout();
@@ -275,7 +330,7 @@ class UserDashboardScreen extends StatelessWidget {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('Anda telah keluar dari Slot $released. Terima kasih!'),
-                    backgroundColor: Colors.indigo,
+                    backgroundColor: AppColors.secondary,
                     behavior: SnackBarBehavior.floating,
                   ),
                 );
